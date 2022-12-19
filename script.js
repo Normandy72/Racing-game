@@ -1,13 +1,17 @@
 // ----- ПЕРЕМЕННЫЕ -----
+var carPic = document.createElement("img");
+var carPicLoaded = false;
+
 var canvas, canvasContext;
 
 // положение шарика по оси Х и У
-var ballX = 75;
-var ballY = 75;
+var carX = 75;
+var carY = 75;
+var carAng = 0;
 
 // кол-во пикселей для одного смещения по Х и У
-var ballSpeedX = 5;
-var ballSpeedY = 7;
+var carSpeedX = 5;
+var carSpeedY = 7;
 
 // координаты курсора мыши
 var mouseX = 0;
@@ -56,7 +60,14 @@ window.onload = function(){
     // добавляем слушателя на движение мыши (чтобы манипулятор двигался при движении мыши)
     canvas.addEventListener('mousemove', updateMousePos);
 
-    ballReset();
+    // только когда картинка загрузится, carPicLoaded изменится на true
+    carPic.onload = function(){
+        carPicLoaded = true;
+    };
+
+    carPic.src = "player1car.png";
+
+    carReset();
 }
 
 // функция, определяющая позицию курсора мыши
@@ -66,12 +77,6 @@ function updateMousePos(e){
 
     mouseX = e.clientX - rect.left - root.scrollLeft;
     mouseY = e.clientY - rect.top - root.scrollTop;
-
-    // cheat / hack to test ball in any position  (использовать для теста!)
-    // ballX = mouseX;
-    // ballY = mouseY;
-    // ballSpeedX = 3;
-    // ballSpeedY = -4;
 }
 
 // обновление 
@@ -81,7 +86,7 @@ function updateAll(){
 }
 
 // если мячик не попадает на манипулятор, то он снова оказывается в центре экрана
-function ballReset(){
+function carReset(){
     for(var eachRow = 0; eachRow < TRACK_ROWS; eachRow++)
     {
         for(var eachCol = 0; eachCol < TRACK_COLS; eachCol++)
@@ -90,46 +95,42 @@ function ballReset(){
             if(trackGrid[arrayIndex] == 2)
             {
                 trackGrid[arrayIndex] = 0;
-                ballX = eachCol * TRACK_W + TRACK_W / 2;
-                ballY = eachRow * TRACK_H + TRACK_H / 2;
+                carX = eachCol * TRACK_W + TRACK_W / 2;
+                carY = eachRow * TRACK_H + TRACK_H / 2;
             } 
         }
     }
 }
 
 // движение мячика
-function ballMove(){
-    // изменение положение шарика по оси Х каждый раз, когда холст обновляется
-    ballX += ballSpeedX;
-
-    if(ballX > canvas.width && ballSpeedX > 0.0)
+function carMove(){
+    carAng += 0.02;
+    
+    if(carX > canvas.width && carSpeedX > 0.0)
     {
-        ballSpeedX *= -1;
+        carSpeedX *= -1;
     }
 
-    if(ballX < 0 && ballSpeedX < 0.0)
+    if(carX < 0 && carSpeedX < 0.0)
     {
-        ballSpeedX *= -1;
+        carSpeedX *= -1;
     }
 
-    // изменение положение шарика по оси Y каждый раз, когда холст обновляется
-    ballY += ballSpeedY;
-
-    if(ballY > canvas.height)
+    if(carY > canvas.height)
     {
         // если мячик вылетает из поля - он появляется снова в центре поля
-        ballReset();
+        carReset();
         // если мячик вылетает из поля - все блоки появляются снова
     }
  
-    if(ballY < 0 && ballSpeedY < 0.0)
+    if(carY < 0 && carSpeedY < 0.0)
     {
-        ballSpeedY *= -1;
+        carSpeedY *= -1;
     }
 }
 
 // вспомогательная функция
-function isBallAtColRow(col, row)
+function isCarAtColRow(col, row)
 {
     if(col >= 0 && col < TRACK_COLS && row >= 0 && row < TRACK_ROWS)
     {
@@ -143,34 +144,34 @@ function isBallAtColRow(col, row)
 }
 
 // взаимодействие мячика и блоков
-function ballTrackHandeling(){
-    var ballTrackCol = Math.floor(ballX / TRACK_W);
-    var ballTrackRow = Math.floor(ballY / TRACK_H);
-    var trackIndexUnderBall = rowColToArrayIndex(ballTrackCol, ballTrackRow);
-    if(ballTrackCol >= 0 && ballTrackCol < TRACK_COLS && ballTrackRow >= 0 && ballTrackRow < TRACK_ROWS)
+function carTrackHandeling(){
+    var carTrackCol = Math.floor(carX / TRACK_W);
+    var carTrackRow = Math.floor(carY / TRACK_H);
+    var trackIndexUnderCar= rowColToArrayIndex(carTrackCol, carTrackRow);
+    if(carTrackCol >= 0 && carTrackCol < TRACK_COLS && carTrackRow >= 0 && carTrackRow < TRACK_ROWS)
     {        
-        if(isBallAtColRow(ballTrackCol, ballTrackRow))
+        if(isCarAtColRow(carTrackCol, carTrackRow))
         {                        
-            var prevBallX = ballX - ballSpeedX;
-            var prevBallY = ballY - ballSpeedY;
-            var prevTrackCol = Math.floor(prevBallX / TRACK_W);
-            var prevTrackRow = Math.floor(prevBallY / TRACK_H);
+            var prevCarX = carX - carSpeedX;
+            var prevCarY = carY - carSpeedY;
+            var prevTrackCol = Math.floor(prevCarX / TRACK_W);
+            var prevTrackRow = Math.floor(prevCarY / TRACK_H);
 
             var bothTestFailed = true;
-            if(prevTrackCol != ballTrackCol)
+            if(prevTrackCol != carTrackCol)
             {
                 // если нет блокирующего блока, то направление меняется
-                if(isBallAtColRow(prevTrackCol, ballTrackRow) == false)
+                if(isCarAtColRow(prevTrackCol, carTrackRow) == false)
                 {
-                    ballSpeedX *= -1;
+                    carSpeedX *= -1;
                     bothTestFailed = false;
                 }                
             }  
-            if(prevTrackRow != ballTrackRow)
+            if(prevTrackRow != carTrackRow)
             {
-                if(isBallAtColRow(ballTrackCol, prevTrackRow) == false)
+                if(isCarAtColRow(carTrackCol, prevTrackRow) == false)
                 {
-                    ballSpeedY *= -1;
+                    carSpeedY *= -1;
                     bothTestFailed = false;
                 }                
             }
@@ -178,8 +179,8 @@ function ballTrackHandeling(){
             // мячик меняет направление при удалении блоков наискосок
             if(bothTestFailed)
             {
-                ballSpeedX *= -1;
-                ballSpeedY *= -1;
+                carSpeedX *= -1;
+                carSpeedY *= -1;
             }
         }        
     }
@@ -187,14 +188,17 @@ function ballTrackHandeling(){
 
 // создаем все движения игры
 function moveAll(){
-    // ballMove();    
-    ballTrackHandeling();
+    //ballMove();    
+    carTrackHandeling();
 }
 
 // создаем все элементы игры
 function drawAll(){
     colorRect(0,0, canvas.width,canvas.height, 'black');    // очищаем экран
-    colorCircle(ballX, ballY, 10, 'white');                 // рисуем мячик
+    //colorCircle(ballX, ballY, 10, 'white');                 // рисуем мячик
+    if(carPicLoaded){
+        canvasContext.drawImage(carPic, carX - carPic.width / 2, carY - carPic.height / 2);
+    }
     drawTracks();
 }
 
