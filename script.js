@@ -14,18 +14,29 @@ var mouseX = 0;
 var mouseY = 0;
 
 // задаем размеры блоков
-const BRICK_W = 80;
-const BRICK_H = 20;
-const BRICK_GAP = 2;
-const BRICK_COLS = 10;
-const BRICK_ROWS = 14;
+const TRACK_W = 40;
+const TRACK_H = 40;
+const TRACK_GAP = 2;
+const TRACK_COLS = 20;
+const TRACK_ROWS = 15;
 
-// массив блоков
-var brickGrid = new Array(BRICK_COLS * BRICK_ROWS);
-
-// кол-во исчезнувших блоков
-var bricksLeft = 0;
-
+// рисуем поле
+// 0 - пустое место, 1 - блок, 2 - начальное положение машинки
+var trackGrid = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+                 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+                 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1,
+                 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1,
+                 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1,
+                 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1,
+                 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1,
+                 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1,
+                 1, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1,
+                 1, 0, 2, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1,
+                 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1,
+                 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1,
+                 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1,
+                 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
 
 // ----- ФУНКЦИИ -----
 window.onload = function(){
@@ -45,34 +56,7 @@ window.onload = function(){
     // добавляем слушателя на движение мыши (чтобы манипулятор двигался при движении мыши)
     canvas.addEventListener('mousemove', updateMousePos);
 
-    brickReset();
     ballReset();
-}
-
-// функция для заполнения массива
-function brickReset(){
-    bricksLeft = 0;
-    // т.к. объявляет i за пределами циклов, значение этой переменной делится между двумя циклами (=> во втором можно не указывать)
-    var i; 
-    // первые 3 строки пустые
-    for(i = 0; i < 3 * BRICK_COLS; i++)
-    {
-        brickGrid[i] = false;
-    }
-    // далее с четвертой строки создаются блоки
-    for(; i < BRICK_COLS * BRICK_ROWS; i++)
-    {
-        // if(Math.random() < 0.5)
-        // {
-        //     brickGrid[i] = true;
-        // }
-        // else
-        // {
-        //     brickGrid[i] = false;
-        // }  
-        brickGrid[i] = true;
-        bricksLeft++;
-    }
 }
 
 // функция, определяющая позицию курсора мыши
@@ -98,8 +82,19 @@ function updateAll(){
 
 // если мячик не попадает на манипулятор, то он снова оказывается в центре экрана
 function ballReset(){
-    ballX = canvas.width/2;
-    ballY = canvas.height/2;
+    for(var eachRow = 0; eachRow < TRACK_ROWS; eachRow++)
+    {
+        for(var eachCol = 0; eachCol < TRACK_COLS; eachCol++)
+        {
+            var arrayIndex = rowColToArrayIndex(eachCol, eachRow);
+            if(trackGrid[arrayIndex] == 2)
+            {
+                trackGrid[arrayIndex] = 0;
+                ballX = eachCol * TRACK_W + TRACK_W / 2;
+                ballY = eachRow * TRACK_H + TRACK_H / 2;
+            } 
+        }
+    }
 }
 
 // движение мячика
@@ -125,7 +120,6 @@ function ballMove(){
         // если мячик вылетает из поля - он появляется снова в центре поля
         ballReset();
         // если мячик вылетает из поля - все блоки появляются снова
-        brickReset();
     }
  
     if(ballY < 0 && ballSpeedY < 0.0)
@@ -137,10 +131,10 @@ function ballMove(){
 // вспомогательная функция
 function isBallAtColRow(col, row)
 {
-    if(col >= 0 && col < BRICK_COLS && row >= 0 && row < BRICK_ROWS)
+    if(col >= 0 && col < TRACK_COLS && row >= 0 && row < TRACK_ROWS)
     {
-        var brickIndexUnderCoord = rowColToArrayIndex(col, row);
-        return brickGrid[brickIndexUnderCoord];
+        var trackIndexUnderCoord = rowColToArrayIndex(col, row);
+        return trackGrid[trackIndexUnderCoord] == 1;
     }
     else
     {
@@ -149,35 +143,32 @@ function isBallAtColRow(col, row)
 }
 
 // взаимодействие мячика и блоков
-function ballBrickHandeling(){
-    var ballBrickCol = Math.floor(ballX / BRICK_W);
-    var ballBrickRow = Math.floor(ballY / BRICK_H);
-    var brickIndexUnderBall = rowColToArrayIndex(ballBrickCol, ballBrickRow);
-    if(ballBrickCol >= 0 && ballBrickCol < BRICK_COLS && ballBrickRow >= 0 && ballBrickRow < BRICK_ROWS)
+function ballTrackHandeling(){
+    var ballTrackCol = Math.floor(ballX / TRACK_W);
+    var ballTrackRow = Math.floor(ballY / TRACK_H);
+    var trackIndexUnderBall = rowColToArrayIndex(ballTrackCol, ballTrackRow);
+    if(ballTrackCol >= 0 && ballTrackCol < TRACK_COLS && ballTrackRow >= 0 && ballTrackRow < TRACK_ROWS)
     {        
-        if(isBallAtColRow(ballBrickCol, ballBrickRow))
-        {            
-            bricksLeft--;
-            brickGrid[brickIndexUnderBall] = false;
-            
+        if(isBallAtColRow(ballTrackCol, ballTrackRow))
+        {                        
             var prevBallX = ballX - ballSpeedX;
             var prevBallY = ballY - ballSpeedY;
-            var prevBrickCol = Math.floor(prevBallX / BRICK_W);
-            var prevBrickRow = Math.floor(prevBallY / BRICK_H);
+            var prevTrackCol = Math.floor(prevBallX / TRACK_W);
+            var prevTrackRow = Math.floor(prevBallY / TRACK_H);
 
             var bothTestFailed = true;
-            if(prevBrickCol != ballBrickCol)
+            if(prevTrackCol != ballTrackCol)
             {
                 // если нет блокирующего блока, то направление меняется
-                if(isBallAtColRow(prevBrickCol, ballBrickRow) == false)
+                if(isBallAtColRow(prevTrackCol, ballTrackRow) == false)
                 {
                     ballSpeedX *= -1;
                     bothTestFailed = false;
                 }                
             }  
-            if(prevBrickRow != ballBrickRow)
+            if(prevTrackRow != ballTrackRow)
             {
-                if(isBallAtColRow(ballBrickCol, prevBrickRow) == false)
+                if(isBallAtColRow(ballTrackCol, prevTrackRow) == false)
                 {
                     ballSpeedY *= -1;
                     bothTestFailed = false;
@@ -196,27 +187,15 @@ function ballBrickHandeling(){
 
 // создаем все движения игры
 function moveAll(){
-    ballMove();    
-    ballBrickHandeling();
+    // ballMove();    
+    ballTrackHandeling();
 }
 
 // создаем все элементы игры
 function drawAll(){
     colorRect(0,0, canvas.width,canvas.height, 'black');    // очищаем экран
     colorCircle(ballX, ballY, 10, 'white');                 // рисуем мячик
-    drawBricks();
-
-    // код, который позволяет увидеть номер столбца, строки и номер блока
-    // var mouseBrickCol = Math.floor(mouseX / BRICK_W);
-    // var mouseBrickRow = Math.floor(mouseY / BRICK_H);
-    // var brickIndexUnderMouse = rowColToArrayIndex(mouseBrickCol, mouseBrickRow);
-    // colorText(mouseBrickCol + ", " + mouseBrickRow + ": " + brickIndexUnderMouse, mouseX, mouseY, 'yellow');    // создаем текст с позицией курсора мыши
-
-    // исчезновение блока при наведении курсора
-    // if(brickIndexUnderMouse >= 0 && brickIndexUnderMouse < BRICK_COLS * BRICK_ROWS)
-    // {
-    //     brickGrid[brickIndexUnderMouse] = false;
-    // }
+    drawTracks();
 }
 
 // создание прямоугольников
@@ -248,19 +227,19 @@ function colorText(showWords, textX, textY, fillColor){
 
 // задаем порядковый номер каждому блоку
 function rowColToArrayIndex(col, row){
-   return col + BRICK_COLS * row;
+   return col + TRACK_COLS * row;
 }
 
 // создаем блоки
-function drawBricks(){
-    for(var eachRow = 0; eachRow < BRICK_ROWS; eachRow++)
+function drawTracks(){
+    for(var eachRow = 0; eachRow < TRACK_ROWS; eachRow++)
     {
-        for(var eachCol = 0; eachCol < BRICK_COLS; eachCol++)
+        for(var eachCol = 0; eachCol < TRACK_COLS; eachCol++)
         {
             var arrayIndex = rowColToArrayIndex(eachCol, eachRow);
-            if(brickGrid[arrayIndex])
+            if(trackGrid[arrayIndex] == 1)
             {
-                colorRect(BRICK_W * eachCol, BRICK_H * eachRow, BRICK_W - BRICK_GAP, BRICK_H - BRICK_GAP, 'blue');
+                colorRect(TRACK_W * eachCol, TRACK_H * eachRow, TRACK_W - TRACK_GAP, TRACK_H - TRACK_GAP, 'blue');
             } 
         }
     }
