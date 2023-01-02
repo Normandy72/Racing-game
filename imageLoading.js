@@ -2,7 +2,7 @@ var carPic = document.createElement("img");
 var wallPic = document.createElement("img");
 var roadPic = document.createElement("img");
 
-var picToLoad = 3;
+var picToLoad = 0;
 
 function countLoadedImagesAndLaunchIfReady(){
     picToLoad--;
@@ -17,7 +17,14 @@ function beginLodingImage(imgVar, fileName){
 }
 
 function loadImages(){
-    beginLodingImage(carPic, "player1car.png");
-    beginLodingImage(wallPic, "wall.png");
-    beginLodingImage(roadPic, "road.png");
+    var imageList = [{varName : carPic, theFile : "player1car.png"},
+                     {varName : wallPic, theFile : "wall.png"},
+                     {varName : roadPic, theFile : "road.png"}];
+
+    picToLoad = imageList.length;
+    
+    for(var i = 0; i < imageList.length; i++)
+    {
+        beginLodingImage(imageList[i].varName, imageList[i].theFile);
+    }
 }
