@@ -13,7 +13,7 @@ function countLoadedImagesAndLaunchIfReady(){
 
 function beginLodingImage(imgVar, fileName){
     imgVar.onload =  countLoadedImagesAndLaunchIfReady;
-	imgVar.src = fileName;
+	imgVar.src = "images/" + fileName;
 }
 
 function loadImages(){
